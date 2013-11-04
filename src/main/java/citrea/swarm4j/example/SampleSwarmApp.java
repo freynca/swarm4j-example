@@ -13,8 +13,8 @@ import citrea.swarm4j.model.Swarm;
 import citrea.swarm4j.model.Type;
 import citrea.swarm4j.spec.Spec;
 import citrea.swarm4j.spec.SpecToken;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -40,7 +40,7 @@ import java.util.Date;
 @EnableAutoConfiguration
 public class SampleSwarmApp implements CommandLineRunner {
 
-    public static final Logger logger = LogManager.getLogger(SampleSwarmApp.class);
+    public static final Logger logger = LoggerFactory.getLogger(SampleSwarmApp.class);
 
     @Autowired
     private SwarmServer swarmServer;
@@ -87,12 +87,13 @@ public class SampleSwarmApp implements CommandLineRunner {
                     swarmServer.start();
                 }
             } catch (InterruptedException e) {
-                logger.warn(e);
+                logger.warn("run interrupted", e);
                 break;
             } catch (NullPointerException e) {
-                System.exit(0);
                 break;
             }
         }
+        logger.info("exit");
+        System.exit(0);
     }
 }
