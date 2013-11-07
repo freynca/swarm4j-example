@@ -8,9 +8,11 @@ package citrea.swarm4j.example;
  *         Time: 16:42
  */
 
-import citrea.swarm4j.SwarmServer;
-import citrea.swarm4j.model.Swarm;
+import citrea.swarm4j.server.EmptyUpstreamFactory;
+import citrea.swarm4j.server.SwarmServer;
+import citrea.swarm4j.server.Swarm;
 import citrea.swarm4j.model.Type;
+import citrea.swarm4j.server.UpstreamFactory;
 import citrea.swarm4j.spec.Spec;
 import citrea.swarm4j.spec.SpecToken;
 import org.slf4j.Logger;
@@ -19,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -36,6 +40,7 @@ import java.util.Date;
  *         Time: 20:38
  */
 @Configuration
+@Import({StorageConfig.class})
 @ComponentScan(basePackages = {"citrea.swarm4j"})
 @EnableAutoConfiguration
 public class SampleSwarmApp implements CommandLineRunner {
@@ -45,7 +50,32 @@ public class SampleSwarmApp implements CommandLineRunner {
     @Autowired
     private SwarmServer swarmServer;
 
+    @Autowired
     private Swarm swarm;
+
+    @Bean
+    public UpstreamFactory upstreamFactory() {
+        return new EmptyUpstreamFactory();
+    }
+
+    @Bean
+    public Swarm swarm() {
+        String procId = SpecToken.date2ts(new Date());
+        Swarm bean = new Swarm(new SpecToken("Swarm"), new SpecToken(procId));
+        {
+            Type type = new Type(bean, new Spec("/Type1"));
+            type.registerField(new Type.FieldDescription("field11"));
+            type.registerField(new Type.FieldDescription("field12"));
+            bean.registerType(type);
+        }
+        {
+            Type type = new Type(bean, new Spec("/Type2"));
+            type.registerField(new Type.FieldDescription("field21"));
+            type.registerField(new Type.FieldDescription("field22"));
+            bean.registerType(type);
+        }
+        return bean;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(SampleSwarmApp.class, args);
@@ -53,21 +83,6 @@ public class SampleSwarmApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String procId = SpecToken.date2ts(new Date());
-        swarm = new Swarm(new SpecToken("Swarm"), new SpecToken(procId));
-
-        {
-            Type type = new Type(swarm, new Spec("/Type1"));
-            type.registerField(new Type.FieldDescription("field11"));
-            type.registerField(new Type.FieldDescription("field12"));
-            swarm.registerType(type);
-        }
-        {
-            Type type = new Type(swarm, new Spec("/Type2"));
-            type.registerField(new Type.FieldDescription("field21"));
-            type.registerField(new Type.FieldDescription("field22"));
-            swarm.registerType(type);
-        }
 
         swarmServer.setSwarm(swarm);
         swarmServer.start();
@@ -78,8 +93,7 @@ public class SampleSwarmApp implements CommandLineRunner {
                 if (cmd == null) {
                     continue;
                 }
-                swarmServer.sendToAll(cmd);
-                if( cmd.equals( "exit" ) ) {
+                if ( cmd.equals( "exit" ) ) {
                     swarmServer.stop();
                     break;
                 } else if (cmd.equals("restart")) {
