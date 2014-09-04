@@ -8,13 +8,13 @@ package citrea.swarm4j.example;
  *         Time: 16:42
  */
 
-import citrea.swarm4j.server.EmptyUpstreamFactory;
+import citrea.swarm4j.example.model.Mouse;
+import citrea.swarm4j.model.Host;
+import citrea.swarm4j.model.SwarmException;
+import citrea.swarm4j.model.spec.SpecToken;
 import citrea.swarm4j.server.SwarmServer;
-import citrea.swarm4j.server.Swarm;
-import citrea.swarm4j.model.Type;
-import citrea.swarm4j.server.UpstreamFactory;
-import citrea.swarm4j.spec.Spec;
-import citrea.swarm4j.spec.SpecToken;
+import citrea.swarm4j.storage.InMemoryStorage;
+import citrea.swarm4j.storage.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Import;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Date;
 
 /**
  * SwarmServerApplication
@@ -40,41 +39,35 @@ import java.util.Date;
  *         Time: 20:38
  */
 @Configuration
-@Import({StorageConfig.class})
+//  @Import({StorageConfig.class})
 @ComponentScan(basePackages = {"citrea.swarm4j"})
 @EnableAutoConfiguration
 public class SampleSwarmApp implements CommandLineRunner {
 
     public static final Logger logger = LoggerFactory.getLogger(SampleSwarmApp.class);
 
+    public static final SpecToken SWARM = new SpecToken("#swarm~0");
+
+    @Autowired
+    private Storage storage;
+
+    @Autowired
+    private Host host;
+
     @Autowired
     private SwarmServer swarmServer;
 
-    @Autowired
-    private Swarm swarm;
-
     @Bean
-    public UpstreamFactory upstreamFactory() {
-        return new EmptyUpstreamFactory();
+    public Storage createStorage() {
+        InMemoryStorage storage = new InMemoryStorage(new SpecToken("#dummy"));
+        return storage;
     }
 
     @Bean
-    public Swarm swarm() {
-        String procId = SpecToken.date2ts(new Date());
-        Swarm bean = new Swarm(new SpecToken("Swarm"), new SpecToken(procId));
-        {
-            Type type = new Type(bean, new Spec("/Type1"));
-            type.registerField(new Type.FieldDescription("field11"));
-            type.registerField(new Type.FieldDescription("field12"));
-            bean.registerType(type);
-        }
-        {
-            Type type = new Type(bean, new Spec("/Type2"));
-            type.registerField(new Type.FieldDescription("field21"));
-            type.registerField(new Type.FieldDescription("field22"));
-            bean.registerType(type);
-        }
-        return bean;
+    public Host createHost() throws SwarmException {
+        Host host = new Host(SWARM, createStorage());
+        host.registerType(Mouse.class);
+        return host;
     }
 
     public static void main(String[] args) {
@@ -84,7 +77,7 @@ public class SampleSwarmApp implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        swarmServer.setSwarm(swarm);
+        swarmServer.setHost(host);
         swarmServer.start();
         BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
         while ( true ) {
