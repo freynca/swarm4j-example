@@ -8,7 +8,7 @@ package citrea.swarm4j.example;
  *         Time: 16:42
  */
 
-import citrea.swarm4j.example.model.Mouse;
+import citrea.swarm4j.example.model.*;
 import citrea.swarm4j.model.Host;
 import citrea.swarm4j.model.SwarmException;
 import citrea.swarm4j.model.spec.SpecToken;
@@ -24,7 +24,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -59,14 +58,14 @@ public class SampleSwarmApp implements CommandLineRunner {
 
     @Bean
     public Storage createStorage() {
-        InMemoryStorage storage = new InMemoryStorage(new SpecToken("#dummy"));
-        return storage;
+        return new InMemoryStorage(new SpecToken("#dummy"));
     }
 
     @Bean
     public Host createHost() throws SwarmException {
         Host host = new Host(SWARM, createStorage());
         host.registerType(Mouse.class);
+        host.registerType(Mice.class);
         return host;
     }
 

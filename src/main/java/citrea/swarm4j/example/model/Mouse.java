@@ -19,6 +19,8 @@ import citrea.swarm4j.model.value.JSONValue;
 public class Mouse extends Model {
 
     @SwarmField
+    public String symbol;
+    @SwarmField
     public Integer x;
     @SwarmField
     public Integer y;
