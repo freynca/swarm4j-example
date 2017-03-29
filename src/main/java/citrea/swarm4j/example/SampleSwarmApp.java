@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +42,7 @@ import java.io.InputStreamReader;
 //  @Import({StorageConfig.class})
 @ComponentScan(basePackages = {"citrea.swarm4j"})
 @EnableAutoConfiguration
+@SpringBootApplication
 public class SampleSwarmApp implements CommandLineRunner {
 
     public static final Logger logger = LoggerFactory.getLogger(SampleSwarmApp.class);
